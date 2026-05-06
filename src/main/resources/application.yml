@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: matching-ms
+
+server:
+  port: ${SERVER_PORT:8083}
+  servlet:
+    context-path: /matching-ms
+
+gemini:
+  api:
+    key: AIzaSyCLGKXx-tkNHWLIKNAJUFLoN0kUE_IglLU
+    url: https://generativelanguage.googleapis.com
+
+user-info-ms:
+  url: https://aztu-career-bridge-user-info-ms.onrender.com
+
+vacancy-ms:
+  url: https://aztu-career-bridge-vacancy-ms.onrender.com
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

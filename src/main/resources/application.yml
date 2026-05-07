@@ -13,10 +13,10 @@ gemini:
     url: https://generativelanguage.googleapis.com
 
 user-info-ms:
-  url: https://aztu-career-bridge-user-info-ms.onrender.com
+  url: https://aztu-career-bridge-user-info-ms.onrender.com/user-info-ms
 
 vacancy-ms:
-  url: https://aztu-career-bridge-vacancy-ms.onrender.com
+  url: https://aztu-career-bridge-vacancy-ms.onrender.com/vacancy-ms
 
 springdoc:
   swagger-ui:

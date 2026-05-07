@@ -9,13 +9,16 @@ import com.example.matchingms.dto.MatchingResponseDto;
 import com.example.matchingms.dto.StudentInfoDto;
 import com.example.matchingms.dto.VacancyDto;
 import com.example.matchingms.service.MatchingService;
+import feign.FeignException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MatchingServiceImpl implements MatchingService {
 
     private final UserInfoClient userInfoClient;
@@ -24,36 +27,57 @@ public class MatchingServiceImpl implements MatchingService {
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
+
     @Override
     public MatchingResponseDto match(Long studentId) {
+        try {
+            // 1. Получаем студента
+            log.info("Fetching student with id: {}", studentId);
+            StudentInfoDto student = userInfoClient.getById(studentId);
+            if (student == null) {
+                throw new RuntimeException("Student not found with id: " + studentId);
+            }
 
-        // 1. Получаем студента
-        StudentInfoDto student = userInfoClient.getById(studentId);
+            // 2. Получаем все вакансии
+            log.info("Fetching all vacancies");
+            List<VacancyDto> vacancies = vacancyClient.getAll();
+            if (vacancies == null || vacancies.isEmpty()) {
+                log.warn("No vacancies found");
+                vacancies = List.of();
+            }
 
-        // 2. Получаем все вакансии
-        List<VacancyDto> vacancies = vacancyClient.getAll();
+            // 3. Формируем промпт
+            String prompt = buildPrompt(student, vacancies);
 
-        // 3. Формируем промпт
-        String prompt = buildPrompt(student, vacancies);
+            // 4. Отправляем в Gemini
+            log.info("Sending request to Gemini API");
+            GeminiRequest request = new GeminiRequest(
+                    List.of(new GeminiRequest.Content(
+                            List.of(new GeminiRequest.Part(prompt))
+                    ))
+            );
 
-        // 4. Отправляем в Gemini
-        GeminiRequest request = new GeminiRequest(
-                List.of(new GeminiRequest.Content(
-                        List.of(new GeminiRequest.Part(prompt))
-                ))
-        );
+            GeminiResponse response = geminiClient.generate(geminiApiKey, request);
+            if (response == null || response.getCandidates() == null || response.getCandidates().isEmpty()) {
+                throw new RuntimeException("Empty response from Gemini API");
+            }
 
-        GeminiResponse response = geminiClient.generate(geminiApiKey, request);
+            // 5. Достаём текст ответа
+            String result = response.getCandidates()
+                    .get(0)
+                    .getContent()
+                    .getParts()
+                    .get(0)
+                    .getText();
 
-        // 5. Достаём текст ответа
-        String result = response.getCandidates()
-                .get(0)
-                .getContent()
-                .getParts()
-                .get(0)
-                .getText();
-
-        return new MatchingResponseDto(studentId, result);
+            return new MatchingResponseDto(studentId, result);
+        } catch (FeignException e) {
+            log.error("Feign client error: status={}, message={}", e.status(), e.getMessage(), e);
+            throw new RuntimeException("Failed to communicate with external service: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Error during matching process for studentId={}", studentId, e);
+            throw new RuntimeException("Matching failed: " + e.getMessage(), e);
+        }
     }
 
     private String buildPrompt(StudentInfoDto student, List<VacancyDto> vacancies) {

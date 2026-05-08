@@ -34,6 +34,12 @@ public class MatchingServiceImpl implements MatchingService {
     @Override
     public MatchingResponseDto match(Long studentId) {
         try {
+            // Check cache first
+            if (cache.containsKey(studentId)) {
+                log.info("Returning cached result for studentId: {}", studentId);
+                return cache.get(studentId);
+            }
+
             // 1. Получаем студента
             log.info("Fetching student with id: {}", studentId);
             var studentResponse = userInfoClient.getById(studentId);
@@ -78,7 +84,9 @@ public class MatchingServiceImpl implements MatchingService {
                     .getMessage()
                     .getContent();
 
-            return new MatchingResponseDto(studentId, result);
+            MatchingResponseDto responseDto = new MatchingResponseDto(studentId, result);
+            cache.put(studentId, responseDto);
+            return responseDto;
         } catch (FeignException e) {
             log.error("Feign client error: status={}, message={}", e.status(), e.getMessage(), e);
             throw new RuntimeException("Failed to communicate with external service: " + e.getMessage(), e);

@@ -1,5 +1,6 @@
 package com.example.matchingms.client;
 
+import com.example.matchingms.dto.ApiResponseDto;
 import com.example.matchingms.dto.StudentInfoDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,5 +11,5 @@ public interface UserInfoClient {
 
 
     @GetMapping("/api/v1/students/{id}")
-    StudentInfoDto getById(@PathVariable Long id);
+    ApiResponseDto<StudentInfoDto> getById(@PathVariable Long id);
 }

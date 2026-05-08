@@ -33,14 +33,16 @@ public class MatchingServiceImpl implements MatchingService {
         try {
             // 1. Получаем студента
             log.info("Fetching student with id: {}", studentId);
-            StudentInfoDto student = userInfoClient.getById(studentId);
+            var studentResponse = userInfoClient.getById(studentId);
+            StudentInfoDto student = studentResponse.getData();
             if (student == null) {
                 throw new RuntimeException("Student not found with id: " + studentId);
             }
 
             // 2. Получаем все вакансии
             log.info("Fetching all vacancies");
-            List<VacancyDto> vacancies = vacancyClient.getAll();
+            var vacancyResponse = vacancyClient.getAll();
+            List<VacancyDto> vacancies = vacancyResponse.getData();
             if (vacancies == null || vacancies.isEmpty()) {
                 log.warn("No vacancies found");
                 vacancies = List.of();

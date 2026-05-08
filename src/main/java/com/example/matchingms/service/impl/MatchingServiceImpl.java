@@ -31,9 +31,9 @@ public class MatchingServiceImpl implements MatchingService {
 
     @Value("${groq.api.model}")
     private String groqModel;
-private final ConcurrentHashMap<Long, MatchingResponseDto> cache = new ConcurrentHashMap<>();
 
-    
+    private final ConcurrentHashMap<Long, MatchingResponseDto> cache = new ConcurrentHashMap<>();
+
     @Override
     public MatchingResponseDto match(Long studentId) {
         try {

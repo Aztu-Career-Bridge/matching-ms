@@ -11,6 +11,7 @@ import com.example.matchingms.dto.VacancyDto;
 import com.example.matchingms.service.MatchingService;
 import feign.FeignException;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +31,9 @@ public class MatchingServiceImpl implements MatchingService {
 
     @Value("${groq.api.model}")
     private String groqModel;
+private final ConcurrentHashMap<Long, MatchingResponseDto> cache = new ConcurrentHashMap<>();
 
+    
     @Override
     public MatchingResponseDto match(Long studentId) {
         try {

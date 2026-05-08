@@ -7,6 +7,6 @@ public class FeignConfig {
 
     @Bean
     public Retryer retryer() {
-        return new Retryer.Default(1000, 5000, 5);
+        return new CustomRetryer();
     }
 }

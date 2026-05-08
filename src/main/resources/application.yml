@@ -9,9 +9,9 @@ server:
 
 groq:
   api:
-    key: your-groq-api-key-here
+    key: ${GROQ_API_KEY}
     url: https://api.groq.com
-    model: llama3-70b-8192
+    model: llama3-8b-8192
 
 user-info-ms:
   url: https://career-bridge-l7zu.onrender.com/user-info-ms

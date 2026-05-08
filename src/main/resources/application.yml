@@ -11,7 +11,7 @@ groq:
   api:
     key: ${GROQ_API_KEY}
     url: https://api.groq.com
-    model: mixtral-8x7b-32768
+    model: llama-3.3-70b-versatile
 
 user-info-ms:
   url: https://career-bridge-l7zu.onrender.com/user-info-ms

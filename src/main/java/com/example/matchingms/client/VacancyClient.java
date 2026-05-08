@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient(name = "vacancy-ms", url = "${vacancy-ms.url}")
-public class VacancyClient {
+public interface VacancyClient {
 
     @GetMapping("/api/v1/vacancies")
     ApiResponseDto<List<VacancyDto>> getAll();

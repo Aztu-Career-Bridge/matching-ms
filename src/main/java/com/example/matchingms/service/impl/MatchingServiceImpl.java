@@ -1,10 +1,10 @@
 package com.example.matchingms.service.impl;
 
-import com.example.matchingms.client.GeminiClient;
+import com.example.matchingms.client.GroqClient;
 import com.example.matchingms.client.UserInfoClient;
 import com.example.matchingms.client.VacancyClient;
-import com.example.matchingms.dto.GeminiRequest;
-import com.example.matchingms.dto.GeminiResponse;
+import com.example.matchingms.dto.GroqRequest;
+import com.example.matchingms.dto.GroqResponse;
 import com.example.matchingms.dto.MatchingResponseDto;
 import com.example.matchingms.dto.StudentInfoDto;
 import com.example.matchingms.dto.VacancyDto;
@@ -23,10 +23,13 @@ public class MatchingServiceImpl implements MatchingService {
 
     private final UserInfoClient userInfoClient;
     private final VacancyClient vacancyClient;
-    private final GeminiClient geminiClient;
+    private final GroqClient groqClient;
 
-    @Value("${gemini.api.key}")
-    private String geminiApiKey;
+    @Value("${groq.api.key}")
+    private String groqApiKey;
+
+    @Value("${groq.api.model}")
+    private String groqModel;
 
     @Override
     public MatchingResponseDto match(Long studentId) {
@@ -51,26 +54,29 @@ public class MatchingServiceImpl implements MatchingService {
             // 3. Формируем промпт
             String prompt = buildPrompt(student, vacancies);
 
-            // 4. Отправляем в Gemini
-            log.info("Sending request to Gemini API");
-            GeminiRequest request = new GeminiRequest(
-                    List.of(new GeminiRequest.Content(
-                            List.of(new GeminiRequest.Part(prompt))
+            // 4. Отправляем в Groq
+            log.info("Sending request to Groq API");
+            GroqRequest request = GroqRequest.builder()
+                    .model(groqModel)
+                    .messages(List.of(
+                            GroqRequest.Message.builder()
+                                    .role("user")
+                                    .content(prompt)
+                                    .build()
                     ))
-            );
+                    .temperature(0.7)
+                    .build();
 
-            GeminiResponse response = geminiClient.generate(geminiApiKey, request);
-            if (response == null || response.getCandidates() == null || response.getCandidates().isEmpty()) {
-                throw new RuntimeException("Empty response from Gemini API");
+            GroqResponse response = groqClient.generate("Bearer " + groqApiKey, request);
+            if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
+                throw new RuntimeException("Empty response from Groq API");
             }
 
             // 5. Достаём текст ответа
-            String result = response.getCandidates()
+            String result = response.getChoices()
                     .get(0)
-                    .getContent()
-                    .getParts()
-                    .get(0)
-                    .getText();
+                    .getMessage()
+                    .getContent();
 
             return new MatchingResponseDto(studentId, result);
         } catch (FeignException e) {

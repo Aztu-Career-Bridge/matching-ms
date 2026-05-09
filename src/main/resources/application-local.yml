@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: matching-ms
+
+server:
+  port: 8083
+  servlet:
+    context-path: /matching-ms
+
+groq:
+  api:
+    key: ${GROQ_API_KEY}
+    url: https://api.groq.com
+    model: llama-3.3-70b-versatile
+
+user-info-ms:
+  url: http://localhost:8081/user-info-ms
+
+vacancy-ms:
+  url: http://localhost:8082/vacancy-ms
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

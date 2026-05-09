@@ -37,13 +37,11 @@ public class MatchingServiceImpl implements MatchingService {
     @Override
     public MatchingResponseDto match(Long studentId) {
         try {
-            // Check cache first
             if (cache.containsKey(studentId)) {
                 log.info("Returning cached result for studentId: {}", studentId);
                 return cache.get(studentId);
             }
 
-            // 1. Получаем студента
             log.info("Fetching student with id: {}", studentId);
             var studentResponse = userInfoClient.getById(studentId);
             StudentInfoDto student = studentResponse.getData();
@@ -51,7 +49,6 @@ public class MatchingServiceImpl implements MatchingService {
                 throw new RuntimeException("Student not found with id: " + studentId);
             }
 
-            // 2. Получаем все вакансии
             log.info("Fetching all vacancies");
             var vacancyResponse = vacancyClient.getAll();
             List<VacancyDto> vacancies = vacancyResponse.getData();
@@ -60,10 +57,8 @@ public class MatchingServiceImpl implements MatchingService {
                 vacancies = List.of();
             }
 
-            // 3. Формируем промпт
             String prompt = buildPrompt(student, vacancies);
 
-            // 4. Отправляем в Groq
             log.info("Sending request to Groq API");
             GroqRequest request = GroqRequest.builder()
                     .model(groqModel)
@@ -81,7 +76,6 @@ public class MatchingServiceImpl implements MatchingService {
                 throw new RuntimeException("Empty response from Groq API");
             }
 
-            // 5. Достаём текст ответа
             String result = response.getChoices()
                     .get(0)
                     .getMessage()

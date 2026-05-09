@@ -24,7 +24,6 @@ public class CustomRetryer implements Retryer {
             throw e;
         }
 
-        // For 429 errors, use exponential backoff with longer delays
         if (e.status() == 429) {
             delay = Math.min(delay * 2, maxDelay);
             log.warn("Rate limited (429), retrying in {}ms (attempt {}/{})", delay, attempt, maxAttempts);
